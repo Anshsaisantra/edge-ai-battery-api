@@ -108,11 +108,20 @@ async def run(request: Request, schema):
     return body
 
 
-@app.post("/predict")
+# run() parses the raw body itself (to time "parse"), so declare the body here for /docs only.
+_READING = {**Reading.model_json_schema(), "example": {"battery_v": 3.86, "temp_c": 28.0, "rings_per_day": 5,
+                                                        "wifi_rssi_dbm": -66, "age_months": 22}}
+_BATCH = {"type": "object", "required": ["rows"],
+          "properties": {"rows": {"type": "array", "minItems": 1, "items": _READING}},
+          "example": {"rows": [_READING["example"]]}}
+_body = lambda schema: {"requestBody": {"required": True, "content": {"application/json": {"schema": schema}}}}
+
+
+@app.post("/predict", openapi_extra=_body(_READING))
 async def predict(request: Request):
     return await run(request, Reading)
 
 
-@app.post("/predict_batch")
+@app.post("/predict_batch", openapi_extra=_body(_BATCH))
 async def predict_batch(request: Request):
     return await run(request, Batch)
