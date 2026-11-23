@@ -15,7 +15,7 @@ import time
 import numpy as np
 import torch
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field, ValidationError
 
 from app.model import FEATURES, BatteryNet
@@ -48,6 +48,11 @@ class Batch(BaseModel):
 
 app = FastAPI(title="Doorbell battery API")
 ms = lambda t0: round((time.perf_counter() - t0) * 1000, 3)
+
+
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+def home():
+    return open("app/index.html", encoding="utf-8").read()
 
 
 @app.get("/model_info")
